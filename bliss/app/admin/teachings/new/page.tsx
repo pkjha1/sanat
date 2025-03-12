@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, FileText, Headphones, Video, Upload, X, Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { put } from "@vercel/blob"
+import { upload } from "@vercel/blob/client"
 
 export default function NewTeachingPage() {
   const [contentType, setContentType] = useState<"text" | "audio" | "video">("text")
@@ -49,7 +49,7 @@ export default function NewTeachingPage() {
         }, 300)
 
         // Upload to Vercel Blob
-        const response = await put(file.name, file, {
+        const response = await upload(file.name, file, {
           access: "public",
           handleUploadUrl: "/api/upload-media",
         })
@@ -73,7 +73,7 @@ export default function NewTeachingPage() {
 
       try {
         // Upload to Vercel Blob
-        const response = await put(file.name, file, {
+        const response = await upload(file.name, file, {
           access: "public",
           handleUploadUrl: "/api/upload-thumbnail",
         })

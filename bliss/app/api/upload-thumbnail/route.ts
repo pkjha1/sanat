@@ -8,22 +8,40 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname: string, clientPayload) => {
-        // Check user authentication and authorization here
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        // Check file type
+        const fileType = clientPayload?.contentType || ""
+        if (!fileType.startsWith("image/")) {
+          return {
+            rejectUpload: true,
+            error: "Only image files are allowed",
+          }
+        }
+
+        // Check file size (5MB max)
+        const maxSize = 5 * 1024 * 1024
+        if (clientPayload?.size && clientPayload.size > maxSize) {
+          return {
+            rejectUpload: true,
+            error: `File size exceeds the maximum allowed (5MB)`,
+          }
+        }
 
         return {
-          allowedContentTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-          maximumSizeInBytes: 5 * 1024 * 1024, // 5MB
           tokenPayload: {
-            userId: "admin",
+            // Optional: Add additional data to the token payload
+            userId: "user_123",
+            uploadType: "thumbnail",
           },
         }
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log("Thumbnail upload completed:", blob)
-
-        // Example: Store in database
-        // await db.insert({ thumbnailUrl: blob.url, userId: tokenPayload.userId })
+        // Store metadata in your database
+        console.log("Upload completed", {
+          blobUrl: blob.url,
+          userId: tokenPayload?.userId,
+          uploadType: tokenPayload?.uploadType,
+        })
       },
     })
 

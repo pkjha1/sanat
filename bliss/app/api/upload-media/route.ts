@@ -8,27 +8,40 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname: string, clientPayload) => {
-        // Check user authentication and authorization here
-        // For example, verify the user is logged in and has permission to upload
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        // Check file type
+        const fileType = clientPayload?.contentType || ""
+        if (!fileType.startsWith("audio/") && !fileType.startsWith("video/")) {
+          return {
+            rejectUpload: true,
+            error: "Only audio and video files are allowed",
+          }
+        }
 
-        // This is where you can validate file types, sizes, etc.
+        // Check file size (100MB for audio, 500MB for video)
+        const maxSize = fileType.startsWith("audio/") ? 100 * 1024 * 1024 : 500 * 1024 * 1024
+        if (clientPayload?.size && clientPayload.size > maxSize) {
+          return {
+            rejectUpload: true,
+            error: `File size exceeds the maximum allowed (${maxSize / (1024 * 1024)}MB)`,
+          }
+        }
+
         return {
-          allowedContentTypes: ["audio/mpeg", "audio/wav", "audio/mp4", "video/mp4", "video/webm", "video/quicktime"],
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB
           tokenPayload: {
-            // Optional: Add additional payload to the token
-            userId: "admin", // In a real app, this would be the authenticated user's ID
+            // Optional: Add additional data to the token payload
+            userId: "user_123",
+            uploadType: "media",
           },
         }
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This is called after the upload is complete
-        // Here you can store the blob URL in your database
-        console.log("Upload completed:", blob)
-
-        // Example: Store in database
-        // await db.insert({ url: blob.url, userId: tokenPayload.userId })
+        // Store metadata in your database
+        console.log("Upload completed", {
+          blobUrl: blob.url,
+          userId: tokenPayload?.userId,
+          uploadType: tokenPayload?.uploadType,
+        })
       },
     })
 
