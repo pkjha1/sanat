@@ -10,9 +10,11 @@ import { cn } from "@/lib/utils"
 
 interface MobileNavigationProps {
   isLoggedIn: boolean
+  userInitials?: string
+  userImage?: string | null
 }
 
-export function MobileNavigation({ isLoggedIn }: MobileNavigationProps) {
+export function MobileNavigation({ isLoggedIn, userInitials, userImage }: MobileNavigationProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
