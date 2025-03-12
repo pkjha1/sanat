@@ -8,8 +8,20 @@ import { ListFilter, Map, Search, List } from "lucide-react"
 import PlacesMapReact from "@/components/places-map-react"
 import Link from "next/link"
 
+// Define the Place type to match what's used in the component
+type Place = {
+  id: string
+  name: string
+  location: { lat: number; lng: number }
+  description: string
+  image: string
+  type: string
+  temples: number
+  rating: number
+}
+
 // Mock data for religious places
-const places = [
+const places: Place[] = [
   {
     id: "1",
     name: "Varanasi",
@@ -77,7 +89,7 @@ export default function ReligiousPlacesPage() {
   const [activeTab, setActiveTab] = useState("list")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedType, setSelectedType] = useState("All")
-  const [selectedPlace, setSelectedPlace] = useState<(typeof places)[0] | null>(null)
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
 
   // Filter places based on search query and selected type
   const filteredPlaces = places.filter((place) => {
@@ -200,7 +212,7 @@ export default function ReligiousPlacesPage() {
 
             <TabsContent value="map" className="m-0">
               <div className="border rounded-lg overflow-hidden h-[600px]">
-                <PlacesMapReact places={filteredPlaces} onPlaceSelect={(place) => setSelectedPlace(place)} />
+                <PlacesMapReact places={filteredPlaces} onPlaceSelect={setSelectedPlace} />
               </div>
             </TabsContent>
           </Tabs>
