@@ -139,8 +139,25 @@ export default function StoriesDatabase() {
             : 1
     }
 
-    if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1
-    if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1
+    // Handle null values for folder field
+    if (sortField === "folder") {
+      // If both are null, they're equal
+      if (a.folder === null && b.folder === null) return 0
+      // Null values should come last in ascending order, first in descending
+      if (a.folder === null) return sortDirection === "asc" ? 1 : -1
+      if (b.folder === null) return sortDirection === "asc" ? -1 : 1
+    }
+
+    // Safe comparison for potentially null values
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+
+    if (aValue === null && bValue === null) return 0
+    if (aValue === null) return sortDirection === "asc" ? 1 : -1
+    if (bValue === null) return sortDirection === "asc" ? -1 : 1
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
     return 0
   })
 
