@@ -115,6 +115,13 @@ const PLACES_DATA = [
   },
 ]
 
+// Define the filter interface
+interface PlaceFilters {
+  name?: string
+  state?: string
+  type?: string
+}
+
 // Filter panel component
 function FilterPanel({
   onFilterChange,
@@ -122,7 +129,7 @@ function FilterPanel({
   types,
   isMobile = false,
 }: {
-  onFilterChange: (filters: any) => void
+  onFilterChange: (filters: PlaceFilters) => void
   states: string[]
   types: string[]
   isMobile?: boolean
@@ -242,7 +249,7 @@ function PlaceCard({ place }: { place: (typeof PLACES_DATA)[0] }) {
 
 export default function ReligiousPlacesPage() {
   const [activeTab, setActiveTab] = useState("list")
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState<PlaceFilters>({})
   const [filteredPlaces, setFilteredPlaces] = useState(PLACES_DATA)
   const [selectedPlace, setSelectedPlace] = useState<number | null>(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -250,8 +257,8 @@ export default function ReligiousPlacesPage() {
   const [showMap, setShowMap] = useState(false)
 
   // Extract unique states and types for filters
-const states = Array.from(new Set(PLACES_DATA.map((place) => place.state))).sort()
-const types = Array.from(new Set(PLACES_DATA.map((place) => place.type))).sort()
+  const states = Array.from(new Set(PLACES_DATA.map((place) => place.state))).sort()
+  const types = Array.from(new Set(PLACES_DATA.map((place) => place.type))).sort()
 
   // Set isClient to true once component mounts
   useEffect(() => {
