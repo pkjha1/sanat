@@ -14,6 +14,7 @@ const defaultCenter = {
   lng: 78.9629, // Center of India
 }
 
+// Define the Place type to match what's used in the parent component
 type Place = {
   id: string
   name: string
@@ -23,6 +24,9 @@ type Place = {
   }
   description: string
   image: string
+  type?: string
+  temples?: number
+  rating?: number
 }
 
 interface PlacesMapProps {
@@ -104,7 +108,7 @@ export default function PlacesMapReact({
             onClick={() => handleMarkerClick(place)}
             icon={{
               url: "/marker-icon.png",
-              scaledSize: new google.maps.Size(30, 30),
+              scaledSize: new (window as any).google.maps.Size(30, 30),
             }}
           />
         ))}
