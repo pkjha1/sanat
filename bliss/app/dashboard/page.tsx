@@ -298,7 +298,7 @@ function DashboardContent() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16 border-2 border-amber-200">
-            <AvatarImage src={userData.avatar} />
+            <AvatarImage src={userData.avatar || undefined} />
             <AvatarFallback className="bg-amber-100 text-amber-800 text-xl">{userData.initials}</AvatarFallback>
           </Avatar>
           <div>
