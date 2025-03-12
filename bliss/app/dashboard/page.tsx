@@ -33,6 +33,51 @@ import { Badge } from "@/components/ui/badge"
 import { useSearchParams } from "next/navigation"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
+// Define types for our data structures to avoid type errors
+type ProgressItem = {
+  id: number
+  title: string
+  type: string
+  progress: number
+  total: number
+  thumbnail: string
+}
+
+type RecommendationItem = {
+  id: number
+  title: string
+  type: string
+  duration?: string
+  chapters?: number
+  thumbnail: string
+  description: string
+}
+
+type BookmarkItem = {
+  id: number
+  title: string
+  type: string
+  date?: string
+  duration?: string
+  chapters?: number
+  thumbnail: string
+}
+
+type ActivityItem = {
+  id: number
+  title: string
+  type: string
+  date: string
+}
+
+type EventItem = {
+  id: number
+  title: string
+  date: string
+  time: string
+  type: string
+}
+
 // Mock user data
 const userData = {
   name: "Rahul Sharma",
@@ -78,13 +123,13 @@ const userData = {
       total: 8,
       thumbnail: "/placeholder.svg?height=80&width=60",
     },
-  ],
+  ] as ProgressItem[],
   recentActivity: [
     { id: 1, title: "Completed Chapter 5: Karma Yoga", type: "book", date: "2 hours ago" },
     { id: 2, title: 'Watched "The Path to Inner Peace"', type: "video", date: "Yesterday" },
     { id: 3, title: 'Bookmarked "Ancient Wisdom for Modern Times"', type: "article", date: "3 days ago" },
     { id: 4, title: 'Started reading "Sacred Temples of India"', type: "book", date: "1 week ago" },
-  ],
+  ] as ActivityItem[],
   recommendations: [
     {
       id: 1,
@@ -110,7 +155,7 @@ const userData = {
       thumbnail: "/placeholder.svg?height=120&width=200",
       description: "A calming meditation session to help you find tranquility within.",
     },
-  ],
+  ] as RecommendationItem[],
   bookmarks: [
     {
       id: 1,
@@ -133,12 +178,12 @@ const userData = {
       chapters: 8,
       thumbnail: "/placeholder.svg?height=80&width=120",
     },
-  ],
+  ] as BookmarkItem[],
   upcomingEvents: [
     { id: 1, title: "Live Q&A with Guruji", date: "2023-06-15", time: "10:00 AM", type: "online" },
     { id: 2, title: "Meditation Workshop", date: "2023-06-22", time: "6:00 PM", type: "online" },
     { id: 3, title: "Bhagavad Gita Discussion", date: "2023-07-01", time: "11:00 AM", type: "online" },
-  ],
+  ] as EventItem[],
 }
 
 // Mock payment data
@@ -504,9 +549,9 @@ function DashboardContent() {
                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.description}</p>
                     <div className="text-xs text-gray-500">
                       {item.type === "video" || item.type === "audio"
-                        ? `${item.duration} duration`
+                        ? `${item.duration || ""} duration`
                         : item.type === "book"
-                          ? `${item.chapters} chapters`
+                          ? `${item.chapters || ""} chapters`
                           : ""}
                     </div>
                   </div>
@@ -572,71 +617,13 @@ function DashboardContent() {
                 </TabsList>
                 <TabsContent value="all">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...userData.progress, ...userData.recommendations].map((item, index) => (
-                      <div
-                        key={index}
-                        className="bg-white rounded-lg overflow-hidden shadow-sm border hover:shadow-md transition-shadow"
-                      >
-                        <div className="relative">
-                          <img
-                            src={item.thumbnail || "/placeholder.svg"}
-                            alt={item.title}
-                            className="w-full aspect-video object-cover"
-                          />
-                          <div className="absolute top-2 left-2">
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getTypeBgColor(item.type)}`}
-                            >
-                              {getTypeIcon(item.type)}
-                              {item.type}
-                            </span>
-                          </div>
-                          {"progress" in item && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
-                              <div className="h-full bg-amber-600" style={{ width: `${item.progress}%` }}></div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <h4 className="font-medium mb-1">{item.title}</h4>
-                          {"description" in item && (
-                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.description}</p>
-                          )}
-                          <div className="flex justify-between items-center">
-                            <div className="text-xs text-gray-500">
-                              {item.type === "video" || item.type === "audio"
-                                ? `${item.duration} duration`
-                                : item.type === "book" || item.type === "course"
-                                  ? `${item.total} ${item.type === "book" ? "chapters" : "lessons"}`
-                                  : ""}
-                            </div>
-                            <div className="flex gap-2">
-                              {"progress" in item ? (
-                                <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
-                                  Continue
-                                </Button>
-                              ) : (
-                                <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
-                                  Start
-                                </Button>
-                              )}
-                              {item.type === "video" || item.type === "audio" ? (
-                                <Button size="sm" variant="outline">
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                <TabsContent value="books">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...userData.progress, ...userData.recommendations]
-                      .filter((item) => item.type === "book")
-                      .map((item, index) => (
+                    {[...userData.progress, ...userData.recommendations].map((item, index) => {
+                      // Type guard to check if item has progress property (ProgressItem)
+                      const hasProgress = "progress" in item
+                      // Type guard to check if item has description property (RecommendationItem)
+                      const hasDescription = "description" in item
+
+                      return (
                         <div
                           key={index}
                           className="bg-white rounded-lg overflow-hidden shadow-sm border hover:shadow-md transition-shadow"
@@ -647,21 +634,46 @@ function DashboardContent() {
                               alt={item.title}
                               className="w-full aspect-video object-cover"
                             />
-                            {"progress" in item && (
+                            <div className="absolute top-2 left-2">
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getTypeBgColor(item.type)}`}
+                              >
+                                {getTypeIcon(item.type)}
+                                {item.type}
+                              </span>
+                            </div>
+                            {hasProgress && (
                               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
-                                <div className="h-full bg-amber-600" style={{ width: `${item.progress}%` }}></div>
+                                <div
+                                  className="h-full bg-amber-600"
+                                  style={{ width: `${(item as ProgressItem).progress}%` }}
+                                ></div>
                               </div>
                             )}
                           </div>
                           <div className="p-4">
                             <h4 className="font-medium mb-1">{item.title}</h4>
-                            {"description" in item && (
-                              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                            {hasDescription && (
+                              <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                {(item as RecommendationItem).description}
+                              </p>
                             )}
                             <div className="flex justify-between items-center">
-                              <div className="text-xs text-gray-500">{`${item.total} chapters`}</div>
+                              <div className="text-xs text-gray-500">
+                                {item.type === "video" || item.type === "audio"
+                                  ? hasDescription
+                                    ? `${(item as RecommendationItem).duration || ""} duration`
+                                    : ""
+                                  : item.type === "book" || item.type === "course"
+                                    ? hasProgress
+                                      ? `${(item as ProgressItem).total} ${item.type === "book" ? "chapters" : "lessons"}`
+                                      : hasDescription && (item as RecommendationItem).chapters
+                                        ? `${(item as RecommendationItem).chapters} chapters`
+                                        : ""
+                                    : ""}
+                              </div>
                               <div className="flex gap-2">
-                                {"progress" in item ? (
+                                {hasProgress ? (
                                   <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
                                     Continue
                                   </Button>
@@ -670,16 +682,85 @@ function DashboardContent() {
                                     Start
                                   </Button>
                                 )}
+                                {(item.type === "video" || item.type === "audio") && (
+                                  <Button size="sm" variant="outline">
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )
+                    })}
+                  </div>
+                </TabsContent>
+                <TabsContent value="books">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...userData.progress, ...userData.recommendations]
+                      .filter((item) => item.type === "book")
+                      .map((item, index) => {
+                        // Type guard to check if item has progress property (ProgressItem)
+                        const hasProgress = "progress" in item
+                        // Type guard to check if item has description property (RecommendationItem)
+                        const hasDescription = "description" in item
+
+                        return (
+                          <div
+                            key={index}
+                            className="bg-white rounded-lg overflow-hidden shadow-sm border hover:shadow-md transition-shadow"
+                          >
+                            <div className="relative">
+                              <img
+                                src={item.thumbnail || "/placeholder.svg"}
+                                alt={item.title}
+                                className="w-full aspect-video object-cover"
+                              />
+                              {hasProgress && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
+                                  <div
+                                    className="h-full bg-amber-600"
+                                    style={{ width: `${(item as ProgressItem).progress}%` }}
+                                  ></div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-4">
+                              <h4 className="font-medium mb-1">{item.title}</h4>
+                              {hasDescription && (
+                                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                  {(item as RecommendationItem).description}
+                                </p>
+                              )}
+                              <div className="flex justify-between items-center">
+                                <div className="text-xs text-gray-500">
+                                  {hasProgress
+                                    ? `${(item as ProgressItem).total} chapters`
+                                    : hasDescription && (item as RecommendationItem).chapters
+                                      ? `${(item as RecommendationItem).chapters} chapters`
+                                      : ""}
+                                </div>
+                                <div className="flex gap-2">
+                                  {hasProgress ? (
+                                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                                      Continue
+                                    </Button>
+                                  ) : (
+                                    <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                                      Start
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
                   </div>
                 </TabsContent>
                 <TabsContent value="videos">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...userData.recommendations]
+                    {userData.recommendations
                       .filter((item) => item.type === "video")
                       .map((item, index) => (
                         <div
@@ -702,7 +783,7 @@ function DashboardContent() {
                             <h4 className="font-medium mb-1">{item.title}</h4>
                             <p className="text-sm text-gray-600 mb-2 line-clamp-2">{item.description}</p>
                             <div className="flex justify-between items-center">
-                              <div className="text-xs text-gray-500">{item.duration}</div>
+                              <div className="text-xs text-gray-500">{item.duration || ""}</div>
                               <div className="flex gap-2">
                                 <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
                                   Watch
@@ -719,7 +800,7 @@ function DashboardContent() {
                 </TabsContent>
                 <TabsContent value="courses">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[...userData.progress]
+                    {userData.progress
                       .filter((item) => item.type === "course")
                       .map((item, index) => (
                         <div
@@ -789,10 +870,12 @@ function DashboardContent() {
                       </div>
                       <div className="text-sm text-gray-600 mb-2">
                         {bookmark.type === "video"
-                          ? `Duration: ${bookmark.duration}`
+                          ? `Duration: ${bookmark.duration || ""}`
                           : bookmark.type === "book"
-                            ? `${bookmark.chapters} chapters`
-                            : `Saved on: ${new Date(bookmark.date).toLocaleDateString()}`}
+                            ? `${bookmark.chapters || ""} chapters`
+                            : bookmark.date
+                              ? `Saved on: ${new Date(bookmark.date).toLocaleDateString()}`
+                              : ""}
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
