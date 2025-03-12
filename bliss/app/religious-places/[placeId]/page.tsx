@@ -54,7 +54,7 @@ const getPlaceData = (id: string) => ({
   bestTimeToVisit: "October to March",
   state: "Uttar Pradesh",
   type: "City",
-  temples: 23,
+  templeCount: 23,
   nearbyPlaces: [
     {
       id: 2,
