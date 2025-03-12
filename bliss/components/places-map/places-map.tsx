@@ -18,11 +18,26 @@ interface Place {
   temples?: number
 }
 
+// Update the PlacesMapProps interface to match what we're using
+// The current interface is:
+// Let's update it to include the markers prop as an alternative to places:
 interface PlacesMapProps {
-  places: Place[]
+  places?: Place[]
+  markers?: {
+    id: number | string
+    name: string
+    position: {
+      lat: number
+      lng: number
+    }
+    type?: string
+  }[]
   onMarkerClick?: (placeId: number | string) => void
   selectedPlace?: number | string | null
   height?: string | number
+  center?: { lat: number; lng: number }
+  zoom?: number
+  showInfoWindow?: boolean
 }
 
 export function PlacesMap({ places, onMarkerClick, selectedPlace, height = "100%" }: PlacesMapProps) {
