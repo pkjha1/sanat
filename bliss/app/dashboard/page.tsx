@@ -1087,14 +1087,6 @@ function DashboardContent() {
                 </Table>
               </div>
             </CardContent>
-            <CardFooter>
-              <Link
-                href="/payment-history"
-                className="text-amber-600 hover:text-amber-700 text-sm font-medium flex items-center"
-              >
-                View complete payment history <ChevronRight className="h-4 w-4 ml-1" />
-              </Link>
-            </CardFooter>
           </Card>
 
           {/* Payment Methods Card */}
