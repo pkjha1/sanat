@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
@@ -95,7 +97,7 @@ export default function BookPage({ params }: { params: { bookId: string } }) {
   }
 
   // Chapter content mapping
-  const chapterContent = {
+  const chapterContent: Record<string, React.ReactNode> = {
     "1": (
       <>
         <p>
