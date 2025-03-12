@@ -286,7 +286,7 @@ export default function ReligiousPlacesPage() {
     let result = [...PLACES_DATA]
 
     if (filters.name) {
-      result = result.filter((place) => place.name.toLowerCase().includes(filters.name.toLowerCase()))
+      result = result.filter((place) => place.name.toLowerCase().includes(filters.name?.toLowerCase() || ""))
     }
 
     if (filters.state && filters.state !== "all") {
