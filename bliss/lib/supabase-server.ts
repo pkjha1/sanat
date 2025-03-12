@@ -1,27 +1,35 @@
-import { createClient } from "@supabase/supabase-js"
+import { createServerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/supabase"
+import { createClient } from "@supabase/supabase-js"
 
-// For server components
 export function createServerSupabaseClient() {
   const cookieStore = cookies()
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Missing Supabase environment variables on server")
-    throw new Error("Missing Supabase environment variables")
-  }
-
-  return createServerComponentClient<Database>({ cookies: () => cookieStore })
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name)?.value
+        },
+        set(name, value, options) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name, options) {
+          cookieStore.set({ name, value: "", ...options })
+        },
+      },
+    },
+  )
 }
 
-// For API routes and server actions
-export function createServerActionClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Missing Supabase environment variables on server")
-    throw new Error("Missing Supabase environment variables")
-  }
-
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+// For server actions and API routes
+export function createActionSupabaseClient() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || "", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "", {
+    auth: {
+      persistSession: false,
+    },
+  })
 }
 

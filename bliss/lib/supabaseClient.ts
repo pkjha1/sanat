@@ -1,26 +1,24 @@
 import { createClient } from "@supabase/supabase-js"
 
-// Check if environment variables are defined
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-// Validate environment variables
-if (!supabaseUrl) {
-  console.error("Missing environment variable: NEXT_PUBLIC_SUPABASE_URL")
+// Check if Supabase is properly configured
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    "Supabase credentials are missing. Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables.",
+  )
 }
 
-if (!supabaseAnonKey) {
-  console.error("Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY")
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+})
 
-// Create client with fallbacks to prevent runtime errors
-export const supabase = createClient(
-  supabaseUrl || "https://placeholder-url.supabase.co",
-  supabaseAnonKey || "placeholder-key",
-)
-
-// Export a function to check if Supabase is properly configured
-export function isSupabaseConfigured() {
-  return !!supabaseUrl && !!supabaseAnonKey
+// Helper function to check if Supabase is configured
+export const isSupabaseConfigured = () => {
+  return Boolean(supabaseUrl && supabaseAnonKey)
 }
 

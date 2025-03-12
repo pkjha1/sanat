@@ -1,82 +1,75 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
+// Define protected routes that require authentication
+const protectedRoutes = ["/dashboard", "/settings", "/admin"]
+
+// Define admin-only routes
+const adminRoutes = ["/admin"]
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const pathname = req.nextUrl.pathname
+
   try {
-    // Create a Supabase client configured to use cookies
-    const res = NextResponse.next()
-    const supabase = createMiddlewareClient({ req: request, res })
+    // Create Supabase client with cookies
+    const supabase = createMiddlewareClient({ req, res })
 
-    // Refresh session if expired - required for Server Components
+    // Refresh session if expired
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // Public pages that should always be accessible
-    const publicPages = ["/", "/about", "/contact"]
-    if (publicPages.includes(request.nextUrl.pathname)) {
-      return res
+    // Check if route requires authentication
+    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
+    const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route))
+
+    // If route is protected and user is not authenticated, redirect to login
+    if (isProtectedRoute && !session) {
+      const redirectUrl = new URL("/auth/login", req.url)
+      redirectUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(redirectUrl)
     }
 
-    // Check if the path starts with /admin
-    if (request.nextUrl.pathname.startsWith("/admin")) {
-      // If no session or user is not an admin, redirect to login
-      if (!session || session.user.user_metadata.role !== "admin") {
-        const url = new URL("/auth/login", request.url)
-        url.searchParams.set("callbackUrl", request.nextUrl.pathname)
-        return NextResponse.redirect(url)
+    // If route is admin-only, check if user has admin role
+    if (isAdminRoute && session) {
+      // Get user profile to check role
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single()
+
+      // If user is not an admin, redirect to dashboard
+      if (!profile || profile.role !== "admin") {
+        return NextResponse.redirect(new URL("/dashboard", req.url))
       }
-    }
-
-    // Check if the path is for authenticated users only
-    if (
-      request.nextUrl.pathname.startsWith("/profile") ||
-      request.nextUrl.pathname.startsWith("/settings") ||
-      request.nextUrl.pathname.startsWith("/bookmarks")
-    ) {
-      if (!session) {
-        const url = new URL("/auth/login", request.url)
-        url.searchParams.set("callbackUrl", request.nextUrl.pathname)
-        return NextResponse.redirect(url)
-      }
-    }
-
-    // Redirect authenticated users from auth pages
-    if (
-      session &&
-      (request.nextUrl.pathname.startsWith("/auth/login") || request.nextUrl.pathname.startsWith("/auth/signup"))
-    ) {
-      return NextResponse.redirect(new URL("/", request.url))
     }
 
     return res
   } catch (error) {
     console.error("Middleware error:", error)
 
-    // If there's an error with Supabase, still allow access to public pages
-    if (
-      request.nextUrl.pathname === "/" ||
-      request.nextUrl.pathname === "/about" ||
-      request.nextUrl.pathname === "/contact"
-    ) {
-      return NextResponse.next()
+    // If there's an error, still allow access to public routes
+    const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
+    if (isProtectedRoute) {
+      const redirectUrl = new URL("/auth/login", req.url)
+      return NextResponse.redirect(redirectUrl)
     }
 
-    // For other pages, redirect to login if there's an auth error
-    return NextResponse.redirect(new URL("/auth/login", request.url))
+    return res
   }
 }
 
-// Update the matcher to include all paths except for the explicitly defined public ones
+// Only run middleware on specific paths
 export const config = {
   matcher: [
-    "/admin/:path*",
-    "/profile/:path*",
-    "/settings/:path*",
-    "/bookmarks/:path*",
-    "/auth/login",
-    "/auth/signup",
-    "/((?!api|_next/static|_next/image|favicon.ico|about|contact).*)",
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     * - public files
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
 
