@@ -256,16 +256,16 @@ export default function TemplePage({ params }: { params: { placeId: string; temp
                 <TabsContent value="map" className="pt-4">
                   <div className="h-80 rounded-lg overflow-hidden">
                     <PlacesMap
-                      markers={[
+                      places={[
                         {
                           id: temple.id,
                           name: temple.name,
-                          position: temple.coordinates,
+                          coordinates: temple.coordinates,
                           type: "temple",
                         },
                       ]}
-                      center={temple.coordinates}
-                      zoom={15}
+                      selectedPlace={temple.id}
+                      height={320}
                     />
                   </div>
                 </TabsContent>
