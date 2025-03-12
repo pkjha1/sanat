@@ -1,3 +1,5 @@
+// This file is a stub that provides simple toast components
+// to maintain compatibility with existing code
 "use client"
 
 import type * as React from "react"
@@ -5,21 +7,18 @@ import { cn } from "@/lib/utils"
 
 export interface ToastProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "destructive"
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
 }
 
 export function Toast({ className, variant = "default", ...props }: ToastProps) {
   return (
     <div
       className={cn(
-        "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+        "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all",
         variant === "destructive"
           ? "destructive border-destructive bg-destructive text-destructive-foreground"
           : "border-border bg-background text-foreground",
         className,
       )}
-      data-state={props.open ? "open" : "closed"}
       {...props}
     />
   )
@@ -44,4 +43,18 @@ export function ToastAction({ className, ...props }: React.ButtonHTMLAttributes<
     />
   )
 }
+
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+
+export function ToastViewport(props: React.HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} />
+}
+
+export function ToastClose(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button {...props} />
+}
+
+export type ToastActionElement = React.ReactElement
 
