@@ -8,39 +8,37 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
+      onBeforeGenerateToken: async (pathname: string, clientPayload: any, multipart: boolean) => {
         // Check file type
         const fileType = clientPayload?.contentType || ""
         if (!fileType.startsWith("audio/") && !fileType.startsWith("video/")) {
-          return {
-            rejectUpload: true,
-            error: "Only audio and video files are allowed",
-          }
+          throw new Error("Only audio and video files are allowed")
         }
 
         // Check file size (100MB for audio, 500MB for video)
         const maxSize = fileType.startsWith("audio/") ? 100 * 1024 * 1024 : 500 * 1024 * 1024
         if (clientPayload?.size && clientPayload.size > maxSize) {
-          return {
-            rejectUpload: true,
-            error: `File size exceeds the maximum allowed (${maxSize / (1024 * 1024)}MB)`,
-          }
+          throw new Error(`File size exceeds the maximum allowed (${maxSize / (1024 * 1024)}MB)`)
         }
 
         return {
-          tokenPayload: {
-            // Optional: Add additional data to the token payload
+          allowedContentTypes: ["audio/mpeg", "audio/wav", "audio/mp4", "video/mp4", "video/webm", "video/quicktime"],
+          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB
+          tokenPayload: JSON.stringify({
             userId: "user_123",
             uploadType: "media",
-          },
+          }),
         }
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // Parse the token payload
+        const payload = tokenPayload ? JSON.parse(tokenPayload) : {}
+
         // Store metadata in your database
         console.log("Upload completed", {
           blobUrl: blob.url,
-          userId: tokenPayload?.userId,
-          uploadType: tokenPayload?.uploadType,
+          userId: payload.userId,
+          uploadType: payload.uploadType,
         })
       },
     })
