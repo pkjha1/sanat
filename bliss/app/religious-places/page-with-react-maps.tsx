@@ -91,6 +91,11 @@ export default function ReligiousPlacesPage() {
   const [selectedType, setSelectedType] = useState("All")
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
 
+  // Create a handler function that matches the expected type
+  const handlePlaceSelect = (place: Place) => {
+    setSelectedPlace(place)
+  }
+
   // Filter places based on search query and selected type
   const filteredPlaces = places.filter((place) => {
     const matchesSearch =
@@ -212,7 +217,7 @@ export default function ReligiousPlacesPage() {
 
             <TabsContent value="map" className="m-0">
               <div className="border rounded-lg overflow-hidden h-[600px]">
-                <PlacesMapReact places={filteredPlaces} onPlaceSelect={setSelectedPlace} />
+                <PlacesMapReact places={filteredPlaces} onPlaceSelect={handlePlaceSelect} />
               </div>
             </TabsContent>
           </Tabs>
