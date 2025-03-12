@@ -7,18 +7,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ListFilter, Map, Search, List } from "lucide-react"
 import PlacesMapReact from "@/components/places-map-react"
 import Link from "next/link"
-
-// Define the Place type to match what's used in the component
-type Place = {
-  id: string
-  name: string
-  location: { lat: number; lng: number }
-  description: string
-  image: string
-  type: string
-  temples: number
-  rating: number
-}
+import type { Place } from "@/types/places"
 
 // Mock data for religious places
 const places: Place[] = [
@@ -105,7 +94,7 @@ export default function ReligiousPlacesPage() {
     return matchesSearch && matchesType
   })
 
-  const placeTypes = ["All", ...Array.from(new Set(places.map((place) => place.type)))]
+  const placeTypes = ["All", ...Array.from(new Set(places.map((place) => place.type).filter(Boolean) as string[]))]
 
   return (
     <div className="container py-6 space-y-6">

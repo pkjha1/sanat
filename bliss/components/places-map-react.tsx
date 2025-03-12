@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react"
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api"
+import type { Place } from "@/types/places"
 
 const containerStyle = {
   width: "100%",
@@ -12,21 +13,6 @@ const containerStyle = {
 const defaultCenter = {
   lat: 20.5937,
   lng: 78.9629, // Center of India
-}
-
-// Define the Place type to match what's used in the parent component
-type Place = {
-  id: string
-  name: string
-  location: {
-    lat: number
-    lng: number
-  }
-  description: string
-  image: string
-  type?: string
-  temples?: number
-  rating?: number
 }
 
 interface PlacesMapProps {
@@ -108,7 +94,7 @@ export default function PlacesMapReact({
             onClick={() => handleMarkerClick(place)}
             icon={{
               url: "/marker-icon.png",
-              scaledSize: new (window as any).google.maps.Size(30, 30),
+              scaledSize: isLoaded && window.google ? new window.google.maps.Size(30, 30) : undefined,
             }}
           />
         ))}
