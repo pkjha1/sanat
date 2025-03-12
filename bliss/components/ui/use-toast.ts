@@ -1,10 +1,13 @@
 "use client"
 
-import type { ToastAction } from "@/components/ui/toast"
+import type React from "react"
 
-import * as React from "react"
+import { createContext, useContext, useState } from "react"
+import type { ReactNode } from "react"
 
-type ToastProps = {
+export type ToastActionElement = React.ReactElement
+
+export type ToastProps = {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: React.ReactNode
@@ -12,56 +15,51 @@ type ToastProps = {
   variant?: "default" | "destructive"
 }
 
-type Toast = ToastProps & {
-  id: string
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-}
-
-type ToastActionElement = React.ReactElement<typeof ToastAction>
-
-interface UseToast {
-  toasts: Toast[]
-  toast: (props: ToastProps) => {
+interface ToastContextProps {
+  toasts: {
     id: string
-    dismiss: () => void
-    update: (props: Partial<ToastProps>) => void
-  }
-  dismiss: (toastId?: string) => void
+    title?: React.ReactNode
+    description?: React.ReactNode
+    action?: React.ReactNode
+    duration?: number
+    variant?: "default" | "destructive"
+  }[]
+  toast: (props: ToastProps) => void
+  dismiss: (id: string) => void
 }
 
-type Action =
-  | {
-      type: "ADD_TOAST"
-      toast: Toast
-    }
-  | {
-      type: "UPDATE_TOAST"
-      toast: Partial<Toast>
-    }
-  | {
-      type: "DISMISS_TOAST"
-      toastId?: string
-    }
-
-interface State {
-  toasts: Toast[]
-}
-
-const ToastContext = React.createContext<UseToast>({
+const ToastContext = createContext<ToastContextProps>({
   toasts: [],
-  toast: () => ({ id: "", dismiss: () => {}, update: () => {} }),
+  toast: () => {},
   dismiss: () => {},
 })
 
-function useToast() {
-  return React.useContext(ToastContext)
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
+  const [toasts, setToasts] = useState<
+    {
+      id: string
+      title?: React.ReactNode
+      description?: React.ReactNode
+      action?: React.ReactNode
+      duration?: number
+      variant?: "default" | "destructive"
+    }[]
+  >([])
+
+  const toast = (props: ToastProps) => {
+    const id = Math.random().toString(36).substring(2)
+    setToasts([...toasts, { id, ...props }])
+    setTimeout(() => dismiss(id), props.duration || 3000)
+  }
+
+  const dismiss = (id: string) => {
+    setToasts(toasts.filter((toast) => toast.id !== id))
+  }
+
+  return <ToastContext.Provider value={{ toasts, toast, dismiss }}>{children}</ToastContext.Provider>
 }
 
-function toast(props: ToastProps) {
-  const context = React.useContext(ToastContext)
-  return context.toast(props)
+export function useToast() {
+  return useContext(ToastContext)
 }
-
-export { useToast, toast }
 
