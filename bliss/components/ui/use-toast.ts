@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
@@ -11,6 +12,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  duration?: number
 }
 
 const actionTypes = {
@@ -23,7 +25,7 @@ const actionTypes = {
 let count = 0
 
 function genId() {
-  count = (count + 1) % Number.MAX_VALUE
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
   return count.toString()
 }
 
@@ -36,7 +38,7 @@ type Action =
     }
   | {
       type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast> & { id: string }
+      toast: Partial<ToasterToast>
     }
   | {
       type: ActionType["DISMISS_TOAST"]
@@ -70,17 +72,18 @@ const reducer = (state: State, action: Action): State => {
     case actionTypes.DISMISS_TOAST: {
       const { toastId } = action
 
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
       if (toastId) {
-        toastTimeouts.set(
-          toastId,
-          setTimeout(() => {
-            toastTimeouts.delete(toastId)
-            dispatch({
-              type: actionTypes.REMOVE_TOAST,
-              toastId,
-            })
-          }, TOAST_REMOVE_DELAY),
-        )
+        if (toastTimeouts.has(toastId)) {
+          clearTimeout(toastTimeouts.get(toastId))
+          toastTimeouts.delete(toastId)
+        }
+      } else {
+        for (const [id, timeout] of toastTimeouts.entries()) {
+          clearTimeout(timeout)
+          toastTimeouts.delete(id)
+        }
       }
 
       return {
@@ -130,6 +133,7 @@ function toast({ ...props }: Toast) {
       type: actionTypes.UPDATE_TOAST,
       toast: { ...props, id },
     })
+
   const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
 
   dispatch({
@@ -144,8 +148,17 @@ function toast({ ...props }: Toast) {
     },
   })
 
+  // Set timeout to auto-dismiss toast if duration is provided
+  if (props.duration !== Number.POSITIVE_INFINITY) {
+    const timeout = setTimeout(() => {
+      dismiss()
+    }, props.duration || TOAST_REMOVE_DELAY)
+
+    toastTimeouts.set(id, timeout)
+  }
+
   return {
-    id: id,
+    id,
     dismiss,
     update,
   }
@@ -162,7 +175,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [])
+  }, [state])
 
   return {
     ...state,
