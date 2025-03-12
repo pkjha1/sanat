@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MapPin, Phone, Globe, Clock, Building, ChevronLeft, Star, Navigation, Calendar } from "lucide-react"
 import { Loader2 } from "lucide-react"
 import Image from "next/image"
-import { PlacesMap } from "@/components/places-map"
+import { TempleMap } from "@/components/temple-map"
 
 export default function TemplePage({ params }: { params: { placeId: string; templeId: string } }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -255,7 +255,7 @@ export default function TemplePage({ params }: { params: { placeId: string; temp
                 </TabsContent>
                 <TabsContent value="map" className="pt-4">
                   <div className="h-80 rounded-lg overflow-hidden">
-                    <PlacesMap
+                    <TempleMap
                       markers={[
                         {
                           id: temple.id,
@@ -267,6 +267,7 @@ export default function TemplePage({ params }: { params: { placeId: string; temp
                       center={temple.coordinates}
                       zoom={15}
                       showInfoWindow={true}
+                      height={320}
                     />
                   </div>
                 </TabsContent>
