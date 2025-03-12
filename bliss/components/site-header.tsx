@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Bell, Search, ChevronDown, User, DollarSign } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabaseClient"
 
 interface SiteHeaderProps {
   isLoggedIn: boolean
@@ -211,10 +212,15 @@ export function SiteHeader({ isLoggedIn, userInitials = "U", userImage, notifica
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="text-red-500 focus:text-red-500">
-                    <Link href="/api/auth/signout" className="cursor-pointer">
-                      Sign Out
-                    </Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="text-red-500 focus:text-red-500"
+                    onClick={async () => {
+                      await supabase.auth.signOut()
+                      window.location.href = "/"
+                    }}
+                  >
+                    <button className="cursor-pointer w-full text-left">Sign Out</button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -1,53 +1,86 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { SiteHeader } from "@/components/site-header"
 import { MobileNavigation } from "@/components/mobile-navigation"
 import { usePathname } from "next/navigation"
 import { Toaster } from "@/components/ui/toaster"
+import { supabase, isSupabaseConfigured } from "@/lib/supabaseClient"
+import type { User } from "@supabase/supabase-js"
+import { useToast } from "@/components/ui/use-toast"
 
-// Mock authentication - in a real app, this would come from your auth provider
+// Supabase authentication hook
 const useAuth = () => {
-  // This is a mock - replace with your actual auth logic
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
-  // For demo purposes, toggle auth state with a button in development
   useEffect(() => {
-    // Only add this in development
-    if (process.env.NODE_ENV === "development") {
-      // Add a hidden button to toggle auth state for testing
-      const toggleButton = document.createElement("button")
-      toggleButton.textContent = "Toggle Auth (DEV)"
-      toggleButton.style.position = "fixed"
-      toggleButton.style.bottom = "80px"
-      toggleButton.style.right = "10px"
-      toggleButton.style.zIndex = "9999"
-      toggleButton.style.padding = "8px"
-      toggleButton.style.background = "#f0f0f0"
-      toggleButton.style.border = "1px solid #ccc"
-      toggleButton.style.borderRadius = "4px"
-      toggleButton.style.fontSize = "12px"
-      toggleButton.style.opacity = "0.7"
-
-      toggleButton.addEventListener("click", () => {
-        setIsLoggedIn((prev) => !prev)
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      console.error("Supabase is not properly configured. Check your environment variables.")
+      toast({
+        title: "Configuration Error",
+        description: "Authentication service is not properly configured.",
+        variant: "destructive",
       })
+      setLoading(false)
+      return
+    }
 
-      document.body.appendChild(toggleButton)
-
-      return () => {
-        document.body.removeChild(toggleButton)
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        setIsLoggedIn(!!session)
+        setUser(session?.user || null)
+      } catch (error) {
+        console.error("Error getting session:", error)
+      } finally {
+        setLoading(false)
       }
     }
-  }, [])
 
-  return { isLoggedIn, user: isLoggedIn ? { initials: "JD", image: null } : null }
+    getInitialSession()
+
+    // Listen for auth changes
+    try {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsLoggedIn(!!session)
+        setUser(session?.user || null)
+        setLoading(false)
+      })
+
+      return () => {
+        subscription.unsubscribe()
+      }
+    } catch (error) {
+      console.error("Error setting up auth listener:", error)
+      setLoading(false)
+    }
+  }, [toast])
+
+  return {
+    isLoggedIn,
+    user,
+    loading,
+    userDetails: user
+      ? {
+          initials: user.email ? user.email.substring(0, 2).toUpperCase() : "U",
+          image: user.user_metadata?.avatar_url || null,
+        }
+      : null,
+  }
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, userDetails, loading } = useAuth()
   const pathname = usePathname()
 
   // Check if current page is admin
@@ -67,12 +100,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <>
       <SiteHeader
         isLoggedIn={isLoggedIn}
-        userInitials={user?.initials}
-        userImage={user?.image}
+        userInitials={userDetails?.initials}
+        userImage={userDetails?.image}
         notificationCount={isLoggedIn ? 3 : 0}
       />
       <main className="min-h-screen pt-20">{children}</main>
-      <MobileNavigation isLoggedIn={isLoggedIn} userInitials={user?.initials} userImage={user?.image} />
+      <MobileNavigation isLoggedIn={isLoggedIn} userInitials={userDetails?.initials} userImage={userDetails?.image} />
       <Toaster />
     </>
   )

@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,9 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { motion } from "framer-motion"
 import { Loader2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function SignupPage() {
   const { toast } = useToast()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
+
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -66,18 +72,68 @@ export default function SignupPage() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Sign up with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            role: "user",
+          },
+        },
+      })
 
-    setIsLoading(false)
-    toast({
-      title: "Account created!",
-      description: "Welcome to Blissful Life. Your spiritual journey begins now.",
-      duration: 5000,
-    })
+      if (error) {
+        throw error
+      }
 
-    // Redirect to dashboard in a real app
-    window.location.href = "/dashboard"
+      toast({
+        title: "Account created!",
+        description: "Welcome to Blissful Life. Your spiritual journey begins now.",
+        duration: 5000,
+      })
+
+      // Redirect to dashboard or confirmation page
+      if (data.user?.identities?.length === 0) {
+        // User already exists
+        router.push("/auth/login")
+      } else {
+        router.push(callbackUrl)
+      }
+    } catch (error: any) {
+      toast({
+        title: "Signup failed",
+        description: error.message || "Could not create your account. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${callbackUrl}`,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+    } catch (error: any) {
+      toast({
+        title: "Signup failed",
+        description: error.message || "Could not sign up with Google. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
   }
 
   return (
@@ -207,7 +263,7 @@ export default function SignupPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignUp}>
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

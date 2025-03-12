@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/components/ui/use-toast"
 import { motion } from "framer-motion"
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function ForgotPasswordPage() {
   const { toast } = useToast()
@@ -21,16 +22,32 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Send password reset email with Supabase
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
 
-    setIsLoading(false)
-    setIsSubmitted(true)
-    toast({
-      title: "Reset link sent!",
-      description: "Check your email for instructions to reset your password.",
-      duration: 5000,
-    })
+      if (error) {
+        throw error
+      }
+
+      setIsSubmitted(true)
+      toast({
+        title: "Reset link sent!",
+        description: "Check your email for instructions to reset your password.",
+        duration: 5000,
+      })
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset link. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
