@@ -250,8 +250,8 @@ export default function ReligiousPlacesPage() {
   const [showMap, setShowMap] = useState(false)
 
   // Extract unique states and types for filters
-  const states = [...new Set(PLACES_DATA.map((place) => place.state))].sort()
-  const types = [...new Set(PLACES_DATA.map((place) => place.type))].sort()
+const states = Array.from(new Set(PLACES_DATA.map((place) => place.state))).sort()
+const types = Array.from(new Set(PLACES_DATA.map((place) => place.type))).sort()
 
   // Set isClient to true once component mounts
   useEffect(() => {
