@@ -29,7 +29,7 @@ export default function HomePage() {
   }, [heroInView, welcomeInView, offeringsInView, teachingsInView])
 
   // Smooth scroll function
-  const scrollToSection = (id) => {
+  const scrollToSection = (id: string) => {
     const element = document.getElementById(id)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
@@ -37,14 +37,14 @@ export default function HomePage() {
   }
 
   // Video player state
-  const [playingVideo, setPlayingVideo] = useState(null)
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null)
 
   // Liked videos state
-  const [likedVideos, setLikedVideos] = useState({})
-  const [bookmarkedVideos, setBookmarkedVideos] = useState({})
+  const [likedVideos, setLikedVideos] = useState<Record<string, boolean>>({})
+  const [bookmarkedVideos, setBookmarkedVideos] = useState<Record<string, boolean>>({})
 
   // Handle like action
-  const handleLike = (videoId) => {
+  const handleLike = (videoId: string) => {
     setLikedVideos((prev) => {
       const newState = { ...prev, [videoId]: !prev[videoId] }
 
@@ -62,7 +62,7 @@ export default function HomePage() {
   }
 
   // Handle bookmark action
-  const handleBookmark = (videoId) => {
+  const handleBookmark = (videoId: string) => {
     setBookmarkedVideos((prev) => {
       const newState = { ...prev, [videoId]: !prev[videoId] }
 
@@ -86,7 +86,7 @@ export default function HomePage() {
   }
 
   // Handle share action
-  const handleShare = (videoTitle) => {
+  const handleShare = (videoTitle: string) => {
     // In a real app, this would use the Web Share API if available
     toast({
       title: "Share this video",
@@ -671,7 +671,7 @@ export default function HomePage() {
           </div>
 
           {/* Footer - Completely rewritten with simpler structure */}
-          <footer className="absolute bottom-0 w-full border-t py-4 bg-background/80 backdrop-blur-sm">
+          <footer className="w-full border-t py-4 bg-background/80 backdrop-blur-sm">
             <div className="container mx-auto px-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <p className="text-center text-sm text-muted-foreground">© 2023 Blissful Life. All rights reserved.</p>
