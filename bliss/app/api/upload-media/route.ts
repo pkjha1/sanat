@@ -8,16 +8,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname: string, clientPayload: any, multipart: boolean) => {
+      onBeforeGenerateToken: async (pathname: string, clientPayload?: string) => {
+        // Parse the client payload if it exists
+        const payload = clientPayload ? JSON.parse(clientPayload) : {}
+
         // Check file type
-        const fileType = clientPayload?.contentType || ""
+        const fileType = payload?.contentType || ""
         if (!fileType.startsWith("audio/") && !fileType.startsWith("video/")) {
           throw new Error("Only audio and video files are allowed")
         }
 
         // Check file size (100MB for audio, 500MB for video)
         const maxSize = fileType.startsWith("audio/") ? 100 * 1024 * 1024 : 500 * 1024 * 1024
-        if (clientPayload?.size && clientPayload.size > maxSize) {
+        if (payload?.size && payload.size > maxSize) {
           throw new Error(`File size exceeds the maximum allowed (${maxSize / (1024 * 1024)}MB)`)
         }
 

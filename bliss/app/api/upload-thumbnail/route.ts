@@ -8,16 +8,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname: string, clientPayload: any, multipart: boolean) => {
+      onBeforeGenerateToken: async (pathname: string, clientPayload?: string) => {
+        // Parse the client payload if it exists
+        const payload = clientPayload ? JSON.parse(clientPayload) : {}
+
         // Check file type
-        const fileType = clientPayload?.contentType || ""
+        const fileType = payload?.contentType || ""
         if (!fileType.startsWith("image/")) {
           throw new Error("Only image files are allowed")
         }
 
         // Check file size (5MB max for thumbnails)
         const maxSize = 5 * 1024 * 1024
-        if (clientPayload?.size && clientPayload.size > maxSize) {
+        if (payload?.size && payload.size > maxSize) {
           throw new Error(`File size exceeds the maximum allowed (5MB)`)
         }
 
