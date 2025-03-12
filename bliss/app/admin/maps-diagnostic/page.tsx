@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckCircle, XCircle, AlertTriangle, ExternalLink } from "lucide-react"
-import { google } from "google-maps"
 
 export default function MapsDiagnosticPage() {
   const [apiKey, setApiKey] = useState<string | null>(null)
@@ -53,13 +52,13 @@ export default function MapsDiagnosticPage() {
         // Try to create a map instance
         const mapDiv = document.getElementById("test-map")
         if (mapDiv) {
-          new google.maps.Map(mapDiv, {
+          ;new (window as any).google.maps.Map(mapDiv, {
             center: { lat: 20.5937, lng: 78.9629 }, // Center of India
             zoom: 5,
           })
           setJsStatus("success")
         }
-      } catch (error) {
+      } catch (error: any) {
         setJsStatus("error")
         setJsError(error.message)
       }
@@ -314,5 +313,12 @@ export default function MapsDiagnosticPage() {
       </Card>
     </div>
   )
+}
+
+// Add the missing type definition for window.initMap
+declare global {
+  interface Window {
+    initMap: () => void
+  }
 }
 
