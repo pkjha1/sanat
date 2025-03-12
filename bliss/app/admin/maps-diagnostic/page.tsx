@@ -75,7 +75,11 @@ export default function MapsDiagnosticPage() {
     return () => {
       // Clean up
       document.head.removeChild(script)
-      delete window.initMap
+      // Make TypeScript happy by checking if the property exists
+      if ("initMap" in window) {
+        // Use the delete operator with type assertion
+        delete (window as any).initMap
+      }
     }
   }, [apiKey])
 
