@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "start:api": "node src/api/server.ts",
+    "start": "npm run build && npm run start:api"
   },
   "dependencies": {
     "@clerk/clerk-react": "^4.30.3",
-    "@clerk/nextjs": "^4.29.9",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
