@@ -1,5 +1,4 @@
 import { Webhook } from 'svix';
-import { WebhookEvent } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { config } from '@/lib/config';
 
@@ -94,7 +93,7 @@ export async function handleClerkWebhook(request: Request) {
   // Create a new Svix instance with your secret
   const wh = new Webhook(WEBHOOK_SECRET);
 
-  let evt: WebhookEvent;
+  let evt: any;
 
   // Verify the payload with the headers
   try {
@@ -102,7 +101,7 @@ export async function handleClerkWebhook(request: Request) {
       'svix-id': svix_id,
       'svix-timestamp': svix_timestamp,
       'svix-signature': svix_signature,
-    }) as WebhookEvent;
+    });
   } catch (err) {
     console.error('Error verifying webhook:', err);
     return new Response('Error occurred', {
