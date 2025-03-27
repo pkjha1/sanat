@@ -1,0 +1,4 @@
+next-auth
+@auth/pg-adapter
+@neondatabase/serverless
+
