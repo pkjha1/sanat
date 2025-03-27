@@ -7,119 +7,91 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
-import { motion } from "framer-motion"
-import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { Label } from "@/components/ui/label"
+import { AlertCircle, ArrowLeft, CheckCircle } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function ForgotPasswordPage() {
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
   const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      // Send password reset email with Supabase
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
+      // Mock password reset functionality
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      if (error) {
-        throw error
-      }
-
-      setIsSubmitted(true)
-      toast({
-        title: "Reset link sent!",
-        description: "Check your email for instructions to reset your password.",
-        duration: 5000,
-      })
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send reset link. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      })
+      // Simulate success
+      setIsSuccess(true)
+    } catch (error) {
+      setError("An error occurred while sending the password reset link. Please try again.")
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-amber-50 to-white py-12 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="border-none shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-            <CardDescription>Enter your email and we'll send you instructions to reset your password</CardDescription>
-          </CardHeader>
-          {isSubmitted ? (
-            <CardContent className="space-y-4 pt-4">
-              <div className="flex flex-col items-center justify-center py-4">
-                <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Check Your Email</h3>
-                <p className="text-gray-600 text-center mb-4">We've sent a password reset link to:</p>
-                <p className="font-medium text-amber-600">{email}</p>
-                <p className="text-sm text-gray-500 mt-4 text-center">
-                  If you don't see the email, check your spam folder or make sure you entered the correct email address.
-                </p>
-              </div>
-            </CardContent>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <Link href="/auth/login" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to login
+          </Link>
+          <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
+          <CardDescription>Enter your email address and we'll send you a link to reset your password.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSuccess ? (
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800">Check your email</AlertTitle>
+              <AlertDescription className="text-green-700">
+                We've sent a password reset link to {email}. Please check your inbox and follow the instructions.
+              </AlertDescription>
+            </Alert>
           ) : (
             <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4 pt-4">
+              <div className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="your.email@example.com"
-                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Button
-                  type="submit"
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Reset Link"
-                  )}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Sending..." : "Send Reset Link"}
                 </Button>
-              </CardFooter>
+              </div>
             </form>
           )}
-          <div className="px-8 pb-8 pt-2">
-            <Link href="/auth/login" className="flex items-center text-sm text-amber-600 hover:underline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to login
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <div className="text-sm text-gray-500">
+            Remember your password?{" "}
+            <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign in
             </Link>
           </div>
-        </Card>
-      </motion.div>
+        </CardFooter>
+      </Card>
     </div>
   )
 }

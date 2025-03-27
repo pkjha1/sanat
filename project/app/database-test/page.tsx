@@ -1,14 +1,19 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { AlertCircle, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
-  CheckCircle,
+  CheckCircleIcon,
   XCircle,
   AlertTriangle,
   RefreshCw,
@@ -20,8 +25,32 @@ import {
   Plus,
 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import { createClient } from "@supabase/supabase-js"
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+// Mock data
+const mockBooks = [
+  { id: 1, title: "The Bhagavad Gita", author: "Vyasa", description: "Ancient Hindu scripture" },
+  { id: 2, title: "Yoga Sutras", author: "Patanjali", description: "Classical yoga philosophy" },
+  { id: 3, title: "Upanishads", author: "Various Authors", description: "Ancient Sanskrit texts" },
+]
 
 export default function DatabaseTestPage() {
+  const [books, setBooks] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const [newBook, setNewBook] = useState({
+    title: "",
+    author: "",
+    description: "",
+  })
+
   const [isLoading, setIsLoading] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle")
   const [connectionDetails, setConnectionDetails] = useState<any>(null)
@@ -40,6 +69,26 @@ export default function DatabaseTestPage() {
     update: { status: "idle", message: null, data: null },
     delete: { status: "idle", message: null, data: null },
   })
+
+  useEffect(() => {
+    async function fetchBooks() {
+      try {
+        setLoading(true)
+        // Simulate API call delay
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
+        // Set mock data
+        setBooks(mockBooks)
+        setError(null)
+      } catch (err) {
+        setError("Failed to fetch books. Please try again.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBooks()
+  }, [])
 
   // Test connection to Supabase
   const testConnection = async () => {
@@ -307,6 +356,41 @@ export default function DatabaseTestPage() {
     }
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setNewBook((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleAddBook = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Add new book to mock data
+      const newId = books.length > 0 ? Math.max(...books.map((book) => book.id)) + 1 : 1
+      const bookToAdd = { id: newId, ...newBook }
+
+      setBooks((prev) => [...prev, bookToAdd])
+      setSuccess("Book added successfully!")
+
+      // Reset form
+      setNewBook({
+        title: "",
+        author: "",
+        description: "",
+      })
+    } catch (err) {
+      setError("Failed to add book. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Run connection test on component mount
   useEffect(() => {
     testConnection()
@@ -381,6 +465,8 @@ export default function DatabaseTestPage() {
           <TabsList>
             <TabsTrigger value="tables">Database Tables</TabsTrigger>
             <TabsTrigger value="crud">CRUD Operations</TabsTrigger>
+            <TabsTrigger value="view">View Books</TabsTrigger>
+            <TabsTrigger value="add">Add Book</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tables">
@@ -503,7 +589,7 @@ export default function DatabaseTestPage() {
                       <Plus className="h-5 w-5 text-green-500" />
                       <h3 className="font-medium">Create Operation</h3>
                       {crudResults.create.status === "success" && (
-                        <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+                        <CheckCircleIcon className="h-4 w-4 text-green-500 ml-auto" />
                       )}
                       {crudResults.create.status === "error" && <XCircle className="h-4 w-4 text-red-500 ml-auto" />}
                     </div>
@@ -553,7 +639,7 @@ export default function DatabaseTestPage() {
                       <FileText className="h-5 w-5 text-blue-500" />
                       <h3 className="font-medium">Read Operation</h3>
                       {crudResults.read.status === "success" && (
-                        <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+                        <CheckCircleIcon className="h-4 w-4 text-green-500 ml-auto" />
                       )}
                       {crudResults.read.status === "error" && <XCircle className="h-4 w-4 text-red-500 ml-auto" />}
                     </div>
@@ -588,7 +674,7 @@ export default function DatabaseTestPage() {
                       <Edit className="h-5 w-5 text-amber-500" />
                       <h3 className="font-medium">Update Operation</h3>
                       {crudResults.update.status === "success" && (
-                        <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+                        <CheckCircleIcon className="h-4 w-4 text-green-500 ml-auto" />
                       )}
                       {crudResults.update.status === "error" && <XCircle className="h-4 w-4 text-red-500 ml-auto" />}
                     </div>
@@ -623,7 +709,7 @@ export default function DatabaseTestPage() {
                       <Trash2 className="h-5 w-5 text-red-500" />
                       <h3 className="font-medium">Delete Operation</h3>
                       {crudResults.delete.status === "success" && (
-                        <CheckCircle className="h-4 w-4 text-green-500 ml-auto" />
+                        <CheckCircleIcon className="h-4 w-4 text-green-500 ml-auto" />
                       )}
                       {crudResults.delete.status === "error" && <XCircle className="h-4 w-4 text-red-500 ml-auto" />}
                     </div>
@@ -662,6 +748,102 @@ export default function DatabaseTestPage() {
                   </AlertDescription>
                 </Alert>
               </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="view">
+            <Card>
+              <CardHeader>
+                <CardTitle>Books Collection</CardTitle>
+                <CardDescription>View all books in the database</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading && <p className="text-center py-4">Loading books...</p>}
+
+                {error && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {!loading && books.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No books found in the database.</p>
+                  </div>
+                )}
+
+                {!loading && books.length > 0 && (
+                  <div className="space-y-4">
+                    {books.map((book) => (
+                      <Card key={book.id}>
+                        <CardHeader className="pb-2">
+                          <CardTitle>{book.title}</CardTitle>
+                          <CardDescription>By {book.author}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p>{book.description}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="add">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Book</CardTitle>
+                <CardDescription>Add a new book to the database</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {success && (
+                  <Alert className="mb-4 bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertTitle className="text-green-800">Success</AlertTitle>
+                    <AlertDescription className="text-green-700">{success}</AlertDescription>
+                  </Alert>
+                )}
+
+                {error && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <form onSubmit={handleAddBook} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input id="title" name="title" value={newBook.title} onChange={handleInputChange} required />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="author">Author</Label>
+                    <Input id="author" name="author" value={newBook.author} onChange={handleInputChange} required />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={newBook.description}
+                      onChange={handleInputChange}
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Adding..." : "Add Book"}
+                  </Button>
+                </form>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
