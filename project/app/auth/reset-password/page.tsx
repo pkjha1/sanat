@@ -1,156 +1,113 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
-import { motion } from "framer-motion"
-import { Loader2 } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import Link from "next/link"
 
-export default function ResetPasswordPage() {
-  const { toast } = useToast()
+export default function ResetPassword() {
+  const [email, setEmail] = useState("")
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
-  })
-  const [errors, setErrors] = useState({
-    password: "",
-    confirmPassword: "",
-  })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear errors when typing
-    if (name === "password" || name === "confirmPassword") {
-      setErrors((prev) => ({ ...prev, [name]: "" }))
-    }
-  }
-
-  const validateForm = () => {
-    let valid = true
-    const newErrors = { password: "", confirmPassword: "" }
-
-    if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
-      valid = false
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-      valid = false
-    }
-
-    setErrors(newErrors)
-    return valid
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e) => {
     e.preventDefault()
-
-    if (!validateForm()) return
-
-    setIsLoading(true)
+    setLoading(true)
+    setError("")
+    setMessage("")
 
     try {
-      // Update password with Supabase
-      const { error } = await supabase.auth.updateUser({
-        password: formData.password,
-      })
+      // Mock password reset functionality
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      if (error) {
-        throw error
-      }
+      // Show success message
+      setMessage("Password reset link sent to your email. Please check your inbox.")
 
-      toast({
-        title: "Password updated!",
-        description: "Your password has been successfully reset.",
-        duration: 5000,
-      })
-
-      // Redirect to login page
-      router.push("/auth/login")
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to reset password. Please try again.",
-        variant: "destructive",
-        duration: 5000,
-      })
+      // Redirect after a delay
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 3000)
+    } catch (error) {
+      setError("Failed to send reset password email. Please try again.")
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-amber-50 to-white py-12 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="border-none shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Reset Your Password</CardTitle>
-            <CardDescription>Enter your new password below</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  New Password
+    <div className="flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Reset your password</h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
+          {message ? (
+            <div className="rounded-md bg-green-50 p-4 mb-4">
+              <div className="text-sm text-green-700">{message}</div>
+            </div>
+          ) : (
+            <form className="space-y-6" onSubmit={handleResetPassword}>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email address
                 </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirm New Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-                {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
+
+              {error && (
+                <div className="rounded-md bg-red-50 p-4">
+                  <div className="text-sm text-red-700">{error}</div>
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {loading ? "Sending..." : "Send reset link"}
+                </button>
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col">
-              <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating password...
-                  </>
-                ) : (
-                  "Reset Password"
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </motion.div>
+            </form>
+          )}
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">Or</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-3">
+              <div>
+                <Link
+                  href="/auth/login"
+                  className="flex w-full justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50"
+                >
+                  Back to login
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

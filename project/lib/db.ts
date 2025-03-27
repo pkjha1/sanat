@@ -1,33 +1,58 @@
-import { Pool } from "@neondatabase/serverless"
-import { drizzle } from "drizzle-orm/neon-serverless"
+// Mock database helper
 
-// Create a PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+import { fetchData } from "./mock-data"
 
-// Create a Drizzle instance
-export const db = drizzle(pool)
+export async function executeQuery(query, params = []) {
+  // Mock query execution
+  console.log("Executing query:", query, "with params:", params)
 
-// Mock SQL function for database operations
-export const sql = async (query: string, params?: any[]) => {
-  console.log("SQL query:", query, params)
-  return { rows: [] }
-}
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500))
 
-// Helper function to execute SQL queries
-export async function executeQuery(query: string, params: any[] = []) {
-  try {
-    const client = await pool.connect()
-    try {
-      const result = await client.query(query, params)
-      return result.rows
-    } finally {
-      client.release()
+  // Parse the query to determine what data to return
+  if (query.toLowerCase().includes("from books")) {
+    return {
+      success: true,
+      data: await fetchData("books"),
+      error: null,
     }
-  } catch (error) {
-    console.error("Database query error:", error)
-    throw error
+  } else if (query.toLowerCase().includes("from places")) {
+    return {
+      success: true,
+      data: await fetchData("places"),
+      error: null,
+    }
+  } else if (query.toLowerCase().includes("from teachings")) {
+    return {
+      success: true,
+      data: await fetchData("teachings"),
+      error: null,
+    }
+  } else if (query.toLowerCase().includes("insert into")) {
+    return {
+      success: true,
+      data: { id: Math.floor(Math.random() * 1000) + 4 },
+      error: null,
+    }
+  } else if (query.toLowerCase().includes("update")) {
+    return {
+      success: true,
+      data: { updated: true },
+      error: null,
+    }
+  } else if (query.toLowerCase().includes("delete")) {
+    return {
+      success: true,
+      data: { deleted: true },
+      error: null,
+    }
+  }
+
+  // Default response
+  return {
+    success: true,
+    data: [],
+    error: null,
   }
 }
 

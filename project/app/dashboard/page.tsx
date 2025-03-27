@@ -248,6 +248,8 @@ function DashboardContent() {
   const [stories, setStories] = useState<any[]>([])
   const [teachings, setTeachings] = useState<any[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview")
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     async function loadUserData() {
@@ -332,8 +334,8 @@ function DashboardContent() {
     )
   }
 
-  const [activeTab, setActiveTab] = useState("overview")
-  const searchParams = useSearchParams()
+  // const [activeTab, setActiveTab] = useState("overview")
+  // const searchParams = useSearchParams()
 
   // Check if this is an admin viewing a user dashboard
   const isAdminView = searchParams.get("admin") === "true"
