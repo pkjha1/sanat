@@ -1,0 +1,17 @@
+// This is a minimal schema to make prisma generate work
+// We're not actually using Prisma anymore, but this prevents build errors
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Empty model to make prisma generate work
+model Placeholder {
+  id String @id @default(uuid())
+}
+
