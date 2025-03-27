@@ -49,6 +49,19 @@ type EntityType =
   | "user"
   | "profile"
 
+// Mock activity logger that doesn't actually use Supabase
+
+export async function logActivity(userId, action, itemId, itemType) {
+  // Mock implementation that doesn't actually use Supabase
+  console.log(`Logging activity: ${userId} ${action} ${itemType} ${itemId}`)
+  return { success: true }
+}
+
+export async function getUserActivity(userId, limit = 10) {
+  // Mock implementation that returns an empty array
+  return []
+}
+
 export async function logUserActivity(
   activityType: ActivityType,
   entityType: EntityType,
